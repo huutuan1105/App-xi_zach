@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bảng Điểm Xì Dách</title>
+
+<style>
+body {
+    font-family: Arial;
+    padding: 20px;
+    background: #f5f5f5;
+}
+
+h2 {
+    text-align: center;
+}
+
+button {
+    padding: 4px 8px;
+    margin: 2px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background: white;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    text-align: center;
+    padding: 6px;
+}
+
+th {
+    background: #eee;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Quản Lý Điểm Xì Dách</h2>
+
+<input type="text" id="nameInput" placeholder="Tên người chơi">
+<button onclick="addPlayer()">Thêm người</button>
+<button onclick="addRound()">Thêm ván</button>
+<button onclick="resetAll()">Reset</button>
+
+<br><br>
+
+<div id="tableArea"></div>
+
+<script>
+let players = JSON.parse(localStorage.getItem("players")) || [];
+let roundCount = JSON.parse(localStorage.getItem("roundCount")) || 0;
+
+function saveData() {
+    localStorage.setItem("players", JSON.stringify(players));
+    localStorage.setItem("roundCount", JSON.stringify(roundCount));
+}
+
+function addPlayer() {
+    let name = document.getElementById("nameInput").value;
+    if(name === "") return;
+
+    players.push({
+        name: name,
+        scores: Array(roundCount).fill(0)
+    });
+
+    document.getElementById("nameInput").value = "";
+    saveData();
+    render();
+}
+
+function addRound() {
+    roundCount++;
+    players.forEach(p => p.scores.push(0));
+    saveData();
+    render();
+}
+
+function updateScore(playerIndex, roundIndex, value) {
+    players[playerIndex].scores[roundIndex] += value;
+    saveData();
+    render();
+}
+
+function getTotal(player) {
+    return player.scores.reduce((a,b) => a + b, 0);
+}
+
+function resetAll() {
+    if(!confirm("Reset toàn bộ?")) return;
+    players = [];
+    roundCount = 0;
+    saveData();
+    render();
+}
+
+function render() {
+
+    if(players.length === 0) {
+        document.getElementById("tableArea").innerHTML = "";
+        return;
+    }
+
+    let highest = Math.max(...players.map(p => getTotal(p)));
+
+    let html = "<table>";
+
+    // Header
+    html += "<tr><th>Ván</th>";
+    players.forEach(p => {
+        let total = getTotal(p);
+        let mark = total === highest ? " ⭐" : "";
+        html += `<th>${p.name}<br>Tổng: ${total}${mark}</th>`;
+    });
+    html += "</tr>";
+
+    // Các ván
+    for(let r = 0; r < roundCount; r++) {
+        html += `<tr><td>Ván ${r+1}</td>`;
+
+        players.forEach((p, pi) => {
+            html += `<td>
+                ${p.scores[r]}<br>
+                <button onclick="updateScore(${pi}, ${r}, -1)">-</button>
+                <button onclick="updateScore(${pi}, ${r}, 1)">+</button>
+            </td>`;
+        });
+
+        html += "</tr>";
+    }
+
+    html += "</table>";
+
+    document.getElementById("tableArea").innerHTML = html;
+}
+
+render();
+</script>
+
+</body>
+</html>
