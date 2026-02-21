@@ -35,6 +35,9 @@ th, td {
 
 th {
     background: #eee;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 </style>
 </head>
@@ -116,7 +119,7 @@ function render() {
     players.forEach(p => {
         let total = getTotal(p);
         let mark = total === highest ? " ⭐" : "";
-        html += `<th>${p.name}<br>Tổng: ${total}${mark}</th>`;
+        html += `<th>${p.name}<br>${total}${mark}</th>`;
     });
     html += "</tr>";
 
